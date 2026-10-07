@@ -1,0 +1,61 @@
+import java.util.Scanner;
+public class PrimeNumberAnalysis {
+    // Method to check whether a number is prime
+    public static boolean isPrime(int number) {
+        if (number < 2) {
+            return false;
+        }
+        for (int i = 2; i * i <= number; i++) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    // Method to generate prime numbers in a range
+    public static void generatePrimes(int start, int end) {
+        System.out.println("\nPrime numbers between " + start + " and " + end + ":");
+        boolean found = false;
+        for (int i = start; i <= end; i++) {
+            if (isPrime(i)) {
+                System.out.print(i + " ");
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No prime numbers found.");
+        } else {
+            System.out.println();
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Prime checker
+        System.out.print("Enter a number to check: ");
+        int number = sc.nextInt();
+
+        if (isPrime(number)) {
+            System.out.println(number + " is a Prime Number.");
+        } else {
+            System.out.println(number + " is Not a Prime Number.");
+        }
+
+        // Range-based prime analysis
+        System.out.print("\nEnter the starting number: ");
+        int start = sc.nextInt();
+
+        System.out.print("Enter the ending number: ");
+        int end = sc.nextInt();
+
+        if (start > end) {
+            System.out.println("Invalid range! Starting number must be less than or equal to ending number.");
+        } else {
+            generatePrimes(start, end);
+        }
+
+        sc.close();
+    }
+}
