@@ -1,0 +1,114 @@
+import java.util.Scanner;
+
+public class ATMSimulation {
+
+    private static final int CORRECT_PIN = 1234;
+    private static double balance = 5000.00;
+
+    // Check balance
+    public static void checkBalance() {
+        System.out.println("Current Balance: ₹" + balance);
+    }
+
+    // Deposit money
+    public static void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("₹" + amount + " deposited successfully.");
+            System.out.println("Updated Balance: ₹" + balance);
+        } else {
+            System.out.println("Invalid deposit amount.");
+        }
+    }
+
+    // Withdraw money
+    public static void withdraw(double amount) {
+        if (amount <= 0) {
+            System.out.println("Invalid withdrawal amount.");
+        } else if (amount > balance) {
+            System.out.println("Insufficient balance.");
+        } else {
+            balance -= amount;
+            System.out.println("₹" + amount + " withdrawn successfully.");
+            System.out.println("Remaining Balance: ₹" + balance);
+        }
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        // PIN Verification
+        int attempts = 0;
+        boolean authenticated = false;
+
+        while (attempts < 3) {
+            System.out.print("Enter your PIN: ");
+            int pin = sc.nextInt();
+
+            if (pin == CORRECT_PIN) {
+                authenticated = true;
+                System.out.println("PIN verified successfully!");
+                break;
+            } else {
+                attempts++;
+                System.out.println("Incorrect PIN.");
+
+                if (attempts < 3) {
+                    System.out.println("Attempts remaining: " + (3 - attempts));
+                }
+            }
+        }
+
+        // Stop if PIN is incorrect 3 times
+        if (!authenticated) {
+            System.out.println("Too many incorrect attempts.");
+            System.out.println("Your account is locked.");
+            sc.close();
+            return;
+        }
+
+        // ATM Menu
+        int choice;
+
+        do {
+            System.out.println("\n===== ATM MENU =====");
+            System.out.println("1. Check Balance");
+            System.out.println("2. Deposit Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+
+                case 1:
+                    checkBalance();
+                    break;
+
+                case 2:
+                    System.out.print("Enter deposit amount: ₹");
+                    double depositAmount = sc.nextDouble();
+                    deposit(depositAmount);
+                    break;
+
+                case 3:
+                    System.out.print("Enter withdrawal amount: ₹");
+                    double withdrawAmount = sc.nextDouble();
+                    withdraw(withdrawAmount);
+                    break;
+
+                case 4:
+                    System.out.println("Thank you for using the ATM.");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Please select 1-4.");
+            }
+
+        } while (choice != 4);
+
+        sc.close();
+    }
+}
