@@ -1,0 +1,79 @@
+import java.util.Scanner;
+public class PrimeNumberAnalysis {
+    // Method to check whether a number is prime
+    static boolean isPrime(int number) {
+        if (number < 2) {
+            return false;
+        }
+        for (int i = 2; i <= number / i; i++) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+    return true;
+    }
+
+    // Method to generate prime numbers up to a limit
+    static void generatePrimes(int limit) {
+        System.out.println("Prime numbers up to " + limit + ":");
+
+        for (int i = 2; i <= limit; i++) {
+            if (isPrime(i)) {
+                System.out.print(i + " ");
+            }
+        }
+        System.out.println();
+    }
+
+    // Main method
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter a number to check: ");
+        int number = sc.nextInt();
+
+        if (isPrime(number)) {
+            System.out.println(number + " is a prime number.");
+        } else {
+            System.out.println(number + " is not a prime number.");
+        }
+
+        System.out.print("Enter the limit to generate prime numbers: ");
+        int limit = sc.nextInt();
+
+        if (limit < 2) {
+            System.out.println("No prime numbers exist up to " + limit + ".");
+        } else {
+            generatePrimes(limit);
+        }
+
+        System.out.print("Enter the starting range: ");
+        int start = sc.nextInt();
+
+        System.out.print("Enter the ending range: ");
+        int end = sc.nextInt();
+
+        if (start > end) {
+            System.out.println("Invalid range. Start must be less than or equal to end.");
+        } else {
+            System.out.println("Prime numbers in the range " + start + " to " + end + ":");
+
+            boolean found = false;
+
+            for (int i = Math.max(2, start); i <= end; i++) {
+                if (isPrime(i)) {
+                    System.out.print(i + " ");
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                System.out.print("No prime numbers found.");
+            }
+
+            System.out.println();
+        }
+
+        sc.close();
+    }
+}
