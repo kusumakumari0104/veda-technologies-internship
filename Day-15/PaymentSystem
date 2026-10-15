@@ -1,0 +1,57 @@
+interface Payment {
+    void processPayment(double amount);
+}
+
+class CardPayment implements Payment {
+    @Override
+    public void processPayment(double amount) {
+        if (amount > 0) {
+            System.out.println("Processing Card Payment...");
+            System.out.println("Payment of Rs. " + amount + " completed using Card.");
+        } else {
+            System.out.println("Invalid payment amount!");
+        }
+    }
+}
+
+class UPIPayment implements Payment {
+    @Override
+    public void processPayment(double amount) {
+        if (amount > 0) {
+            System.out.println("Processing UPI Payment...");
+            System.out.println("Payment of Rs. " + amount + " completed using UPI.");
+        } else {
+            System.out.println("Invalid payment amount!");
+        }
+    }
+}
+
+class WalletPayment implements Payment {
+    @Override
+    public void processPayment(double amount) {
+        if (amount > 0) {
+            System.out.println("Processing Wallet Payment...");
+            System.out.println("Payment of Rs. " + amount + " completed using Wallet.");
+        } else {
+            System.out.println("Invalid payment amount!");
+        }
+    }
+}
+
+public class PaymentSystem {
+    public static void main(String[] args) {
+        double amount = 1500.00;
+
+        Payment card = new CardPayment();
+        Payment upi = new UPIPayment();
+        Payment wallet = new WalletPayment();
+
+        card.processPayment(amount);
+        System.out.println();
+
+        upi.processPayment(amount);
+        System.out.println();
+
+        wallet.processPayment(amount);
+    }
+}
