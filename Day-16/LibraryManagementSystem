@@ -1,0 +1,287 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+class Book {
+    int id;
+    String title;
+    String author;
+    boolean isIssued;
+
+    Book(int id, String title, String author) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.isIssued = false;
+    }
+
+    void displayBook() {
+        System.out.println("Book ID: " + id);
+        System.out.println("Title: " + title);
+        System.out.println("Author: " + author);
+        System.out.println("Status: " +
+                (isIssued ? "Issued" : "Available"));
+        System.out.println("----------------------");
+    }
+}
+
+class Member {
+    int id;
+    String name;
+
+    Member(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    void displayMember() {
+        System.out.println("Member ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("----------------------");
+    }
+}
+
+class IssueRecord {
+    int bookId;
+    int memberId;
+    LocalDate issueDate;
+    LocalDate dueDate;
+
+    IssueRecord(int bookId, int memberId) {
+        this.bookId = bookId;
+        this.memberId = memberId;
+        this.issueDate = LocalDate.now();
+        this.dueDate = issueDate.plusDays(14);
+    }
+}
+
+public class LibraryManagementSystem {
+
+    static ArrayList<Book> books = new ArrayList<>();
+    static ArrayList<Member> members = new ArrayList<>();
+    static ArrayList<IssueRecord> records = new ArrayList<>();
+
+    static Scanner sc = new Scanner(System.in);
+
+    static Book findBook(int id) {
+        for (Book book : books) {
+            if (book.id == id) {
+                return book;
+            }
+        }
+        return null;
+    }
+
+    static Member findMember(int id) {
+        for (Member member : members) {
+            if (member.id == id) {
+                return member;
+            }
+        }
+        return null;
+    }
+
+    static void addBook() {
+        System.out.print("Enter book ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        if (findBook(id) != null) {
+            System.out.println("Book ID already exists.");
+            return;
+        }
+
+        System.out.print("Enter book title: ");
+        String title = sc.nextLine();
+
+        System.out.print("Enter author name: ");
+        String author = sc.nextLine();
+
+        books.add(new Book(id, title, author));
+        System.out.println("Book added successfully!");
+    }
+
+    static void viewBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+            return;
+        }
+
+        for (Book book : books) {
+            book.displayBook();
+        }
+    }
+
+    static void addMember() {
+        System.out.print("Enter member ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        if (findMember(id) != null) {
+            System.out.println("Member ID already exists.");
+            return;
+        }
+
+        System.out.print("Enter member name: ");
+        String name = sc.nextLine();
+
+        members.add(new Member(id, name));
+        System.out.println("Member added successfully!");
+    }
+
+    static void viewMembers() {
+        if (members.isEmpty()) {
+            System.out.println("No members registered.");
+            return;
+        }
+
+        for (Member member : members) {
+            member.displayMember();
+        }
+    }
+
+    static void issueBook() {
+        System.out.print("Enter book ID: ");
+        int bookId = sc.nextInt();
+
+        System.out.print("Enter member ID: ");
+        int memberId = sc.nextInt();
+
+        Book book = findBook(bookId);
+        Member member = findMember(memberId);
+
+        if (book == null || member == null) {
+            System.out.println("Invalid book ID or member ID.");
+            return;
+        }
+
+        if (book.isIssued) {
+            System.out.println("Book is already issued.");
+            return;
+        }
+
+        book.isIssued = true;
+        records.add(new IssueRecord(bookId, memberId));
+
+        System.out.println("Book issued successfully!");
+        System.out.println("Due date: " +
+                LocalDate.now().plusDays(14));
+    }
+
+    static void returnBook() {
+        System.out.print("Enter book ID to return: ");
+        int bookId = sc.nextInt();
+
+        IssueRecord record = null;
+
+        for (IssueRecord r : records) {
+            if (r.bookId == bookId) {
+                record = r;
+                break;
+            }
+        }
+
+        Book book = findBook(bookId);
+
+        if (book == null || record == null) {
+            System.out.println("No active issue record found.");
+            return;
+        }
+
+        LocalDate returnDate = LocalDate.now();
+
+        long overdueDays = Math.max(
+                0,
+                ChronoUnit.DAYS.between(record.dueDate, returnDate)
+        );
+
+        double fine = overdueDays * 5.0;
+
+        book.isIssued = false;
+        records.remove(record);
+
+        System.out.println("Book returned successfully!");
+        System.out.println("Overdue days: " + overdueDays);
+        System.out.println("Fine amount: Rs. " + fine);
+    }
+
+    static void viewIssuedBooks() {
+        if (records.isEmpty()) {
+            System.out.println("No books are currently issued.");
+            return;
+        }
+
+        for (IssueRecord r : records) {
+            Book book = findBook(r.bookId);
+            Member member = findMember(r.memberId);
+
+            System.out.println("Book: " + book.title);
+            System.out.println("Member: " + member.name);
+            System.out.println("Issue date: " + r.issueDate);
+            System.out.println("Due date: " + r.dueDate);
+            System.out.println("----------------------");
+        }
+    }
+
+    public static void main(String[] args) {
+
+        int choice;
+
+        do {
+            System.out.println("\n===== LIBRARY MANAGEMENT SYSTEM =====");
+            System.out.println("1. Add Book");
+            System.out.println("2. View Books");
+            System.out.println("3. Add Member");
+            System.out.println("4. View Members");
+            System.out.println("5. Issue Book");
+            System.out.println("6. Return Book");
+            System.out.println("7. View Issued Books");
+            System.out.println("8. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    addBook();
+                    break;
+
+                case 2:
+                    viewBooks();
+                    break;
+
+                case 3:
+                    addMember();
+                    break;
+
+                case 4:
+                    viewMembers();
+                    break;
+
+                case 5:
+                    issueBook();
+                    break;
+
+                case 6:
+                    returnBook();
+                    break;
+
+                case 7:
+                    viewIssuedBooks();
+                    break;
+
+                case 8:
+                    System.out.println("Thank you for using the library system!");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+
+        } while (choice != 8);
+
+        sc.close();
+    }
+}
