@@ -1,0 +1,65 @@
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Scanner;
+
+public class Day21 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        Deque<String> history = new ArrayDeque<>();
+        StringBuilder text = new StringBuilder();
+
+        while (true) {
+            System.out.println("\n--- Text Editor ---");
+            System.out.println("1. Add text");
+            System.out.println("2. Undo");
+            System.out.println("3. View text");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+
+            int choice;
+            try {
+                choice = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid choice. Enter a number.");
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter text to add: ");
+                    String newText = sc.nextLine();
+
+                    // Save the previous state before editing
+                    history.push(text.toString());
+                    text.append(newText);
+
+                    System.out.println("Text added successfully.");
+                    break;
+
+                case 2:
+                    if (history.isEmpty()) {
+                        System.out.println("Nothing to undo.");
+                    } else {
+                        // Restore the most recent previous state
+                        text = new StringBuilder(history.pop());
+                        System.out.println("Undo successful.");
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("Current text: " + text);
+                    break;
+
+                case 4:
+                    System.out.println("Exiting text editor.");
+                    sc.close();
+                    return;
+
+                default:
+                    System.out.println("Invalid choice. Try again.");
+            }
+        }
+    }
+}
