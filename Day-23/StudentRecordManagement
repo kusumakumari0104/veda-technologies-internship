@@ -1,0 +1,217 @@
+
+import java.io.*;
+import java.util.Scanner;
+
+public class StudentRecordManagement {
+
+    private static final String FILE_NAME = "students.txt";
+    private static final Scanner sc = new Scanner(System.in);
+
+    // Add a student record
+    public static void addStudent() {
+        try (BufferedWriter writer = new BufferedWriter(
+                new FileWriter(FILE_NAME, true))) {
+
+            System.out.print("Enter Student ID: ");
+            String id = sc.nextLine();
+
+            if (findStudent(id) != null) {
+                System.out.println("Student ID already exists!");
+                return;
+            }
+
+            System.out.print("Enter Student Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Student Marks: ");
+            String marks = sc.nextLine();
+
+            writer.write(id + "," + name + "," + marks);
+            writer.newLine();
+
+            System.out.println("Student record added successfully!");
+
+        } catch (IOException e) {
+            System.out.println("Error adding record: " + e.getMessage());
+        }
+    }
+
+    // Read all student records
+    public static void readStudents() {
+        File file = new File(FILE_NAME);
+
+        if (!file.exists()) {
+            System.out.println("No student records found.");
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(FILE_NAME))) {
+
+            String line;
+
+            System.out.println("\n--- Student Records ---");
+
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",", -1);
+
+                if (data.length == 3) {
+                    System.out.println("ID: " + data[0]
+                            + ", Name: " + data[1]
+                            + ", Marks: " + data[2]);
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error reading records: " + e.getMessage());
+        }
+    }
+
+    // Find a student by ID
+    private static String[] findStudent(String id) throws IOException {
+        File file = new File(FILE_NAME);
+
+        if (!file.exists()) {
+            return null;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(file))) {
+
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",", -1);
+
+                if (data.length == 3 && data[0].equals(id)) {
+                    return data;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // Search for a student
+    public static void searchStudent() {
+        try {
+            System.out.print("Enter Student ID to search: ");
+            String id = sc.nextLine();
+
+            String[] student = findStudent(id);
+
+            if (student != null) {
+                System.out.println("Student Found!");
+                System.out.println("ID: " + student[0]);
+                System.out.println("Name: " + student[1]);
+                System.out.println("Marks: " + student[2]);
+            } else {
+                System.out.println("Student not found.");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error searching: " + e.getMessage());
+        }
+    }
+
+    // Update a student record
+    public static void updateStudent() {
+        try {
+            System.out.print("Enter Student ID to update: ");
+            String id = sc.nextLine();
+
+            String[] student = findStudent(id);
+
+            if (student == null) {
+                System.out.println("Student not found.");
+                return;
+            }
+
+            System.out.print("Enter new Student Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter new Student Marks: ");
+            String marks = sc.nextLine();
+
+            File inputFile = new File(FILE_NAME);
+            File tempFile = new File("students_temp.txt");
+
+            try (BufferedReader reader = new BufferedReader(
+                        new FileReader(inputFile));
+                 BufferedWriter writer = new BufferedWriter(
+                        new FileWriter(tempFile))) {
+
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    String[] data = line.split(",", -1);
+
+                    if (data.length == 3 && data[0].equals(id)) {
+                        writer.write(id + "," + name + "," + marks);
+                    } else {
+                        writer.write(line);
+                    }
+
+                    writer.newLine();
+                }
+            }
+
+            if (!inputFile.delete()) {
+                System.out.println("Could not replace the original file.");
+                return;
+            }
+
+            if (!tempFile.renameTo(inputFile)) {
+                System.out.println("Could not save updated records.");
+                System.out.println("Updated data is in students_temp.txt");
+                return;
+            }
+
+            System.out.println("Student record updated successfully!");
+
+        } catch (IOException e) {
+            System.out.println("Error updating record: " + e.getMessage());
+        }
+    }
+
+    // Main menu
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n=== Student Record Management ===");
+            System.out.println("1. Add Student");
+            System.out.println("2. Read All Students");
+            System.out.println("3. Search Student");
+            System.out.println("4. Update Student");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+
+            String choice = sc.nextLine();
+
+            switch (choice) {
+                case "1":
+                    addStudent();
+                    break;
+
+                case "2":
+                    readStudents();
+                    break;
+
+                case "3":
+                    searchStudent();
+                    break;
+
+                case "4":
+                    updateStudent();
+                    break;
+
+                case "5":
+                    System.out.println("Exiting program...");
+                    sc.close();
+                    return;
+
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+        }
+    }
+}
