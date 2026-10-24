@@ -1,0 +1,102 @@
+
+import java.io.*;
+import java.util.*;
+
+public class EmployeeCSVProcessor {
+
+    public static void main(String[] args) {
+        String inputFile = "employees.csv";
+        String outputFile = "processed_employees.csv";
+
+        List<String[]> validEmployees = new ArrayList<>();
+        int totalRows = 0;
+        int invalidRows = 0;
+        double totalSalary = 0;
+        double highestSalary = Double.MIN_VALUE;
+        double lowestSalary = Double.MAX_VALUE;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+            boolean firstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue; // Skip header
+                }
+
+                totalRows++;
+                String[] data = line.split(",", -1);
+
+                try {
+                    if (data.length != 4) {
+                        throw new IllegalArgumentException("Incorrect number of columns");
+                    }
+
+                    String id = data[0].trim();
+                    String name = data[1].trim();
+                    String department = data[2].trim();
+                    double salary = Double.parseDouble(data[3].trim());
+
+                    if (id.isEmpty() || name.isEmpty() || department.isEmpty()) {
+                        throw new IllegalArgumentException("Missing field");
+                    }
+
+                    if (salary < 0 || !Double.isFinite(salary)) {
+                        throw new IllegalArgumentException("Invalid salary");
+                    }
+
+                    validEmployees.add(new String[]{
+                        id, name, department, String.valueOf(salary)
+                    });
+
+                    totalSalary += salary;
+                    highestSalary = Math.max(highestSalary, salary);
+                    lowestSalary = Math.min(lowestSalary, salary);
+
+                } catch (RuntimeException e) {
+                    invalidRows++;
+                    System.out.println(
+                        "Skipping invalid row " + (totalRows + 1) +
+                        ": " + e.getMessage()
+                    );
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Input file not found: " + inputFile);
+            return;
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+            return;
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
+            writer.println("ID,Name,Department,Salary");
+
+            for (String[] employee : validEmployees) {
+                writer.println(String.join(",", employee));
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error writing output: " + e.getMessage());
+            return;
+        }
+
+        System.out.println("\nEmployee CSV Processing Completed");
+        System.out.println("---------------------------------");
+        System.out.println("Total records processed: " + totalRows);
+        System.out.println("Valid employees: " + validEmployees.size());
+        System.out.println("Invalid records: " + invalidRows);
+
+        if (!validEmployees.isEmpty()) {
+            System.out.printf("Total salary: %.2f%n", totalSalary);
+            System.out.printf("Average salary: %.2f%n",
+                    totalSalary / validEmployees.size());
+            System.out.printf("Highest salary: %.2f%n", highestSalary);
+            System.out.printf("Lowest salary: %.2f%n", lowestSalary);
+        }
+
+        System.out.println("Output file: " + outputFile);
+    }
+}
