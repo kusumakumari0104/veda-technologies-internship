@@ -1,0 +1,110 @@
+
+import java.io.*;
+import java.util.*;
+
+public class LogFileAnalyzer {
+
+    public static void main(String[] args) {
+        String inputFile = "application.log";
+        String outputFile = "log_report.txt";
+
+        Map<String, Integer> logCounts = new HashMap<>();
+        List<String> errorMessages = new ArrayList<>();
+
+        logCounts.put("INFO", 0);
+        logCounts.put("WARNING", 0);
+        logCounts.put("ERROR", 0);
+
+        int totalLines = 0;
+        int malformedLines = 0;
+
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(inputFile))) {
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                totalLines++;
+
+                // Ignore empty lines
+                if (line.trim().isEmpty()) {
+                    malformedLines++;
+                    continue;
+                }
+
+                // Expected format: [LEVEL] Message
+                int start = line.indexOf('[');
+                int end = line.indexOf(']');
+
+                if (start != 0 || end <= start + 1) {
+                    malformedLines++;
+                    continue;
+                }
+
+                String level = line.substring(start + 1, end)
+                                   .trim()
+                                   .toUpperCase();
+
+                String message = line.substring(end + 1).trim();
+
+                if (message.isEmpty()) {
+                    malformedLines++;
+                    continue;
+                }
+
+                if (logCounts.containsKey(level)) {
+                    logCounts.put(
+                        level, logCounts.get(level) + 1
+                    );
+
+                    if (level.equals("ERROR")) {
+                        errorMessages.add(message);
+                    }
+                } else {
+                    malformedLines++;
+                }
+            }
+
+            // Generate report
+            try (PrintWriter writer =
+                    new PrintWriter(new FileWriter(outputFile))) {
+
+                writer.println("========== LOG FILE ANALYSIS ==========");
+                writer.println("Total Lines: " + totalLines);
+                writer.println("Malformed Lines: " + malformedLines);
+                writer.println();
+
+                writer.println("Log Level Statistics:");
+                writer.println("INFO: " + logCounts.get("INFO"));
+                writer.println("WARNING: " + logCounts.get("WARNING"));
+                writer.println("ERROR: " + logCounts.get("ERROR"));
+                writer.println();
+
+                writer.println("Error Summary:");
+
+                if (errorMessages.isEmpty()) {
+                    writer.println("No errors found.");
+                } else {
+                    for (String error : errorMessages) {
+                        writer.println("- " + error);
+                    }
+                }
+
+                writer.println("========================================");
+            }
+
+            System.out.println("Log file analyzed successfully!");
+            System.out.println("Total lines: " + totalLines);
+            System.out.println("Malformed lines: " + malformedLines);
+            System.out.println("INFO: " + logCounts.get("INFO"));
+            System.out.println("WARNING: " + logCounts.get("WARNING"));
+            System.out.println("ERROR: " + logCounts.get("ERROR"));
+            System.out.println("Report saved to " + outputFile);
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: Input file not found: " + inputFile);
+        } catch (IOException e) {
+            System.out.println("Error processing file: " + e.getMessage());
+        }
+    }
+}
