@@ -1,0 +1,94 @@
+import java.util.concurrent.*;
+public class MultithreadedNumberProcessor {
+    static final int SIZE = 10_000_000;
+    static final int THREAD_COUNT = 4;
+    // Single-threaded processing
+    public static long singleThreadedSum() {
+        long sum = 0;
+        for (int i = 1; i <= SIZE; i++) {
+            sum += (long) i * i;
+        }
+        return sum;
+    }
+    // Multithreaded processing
+    public static long multiThreadedSum()
+            throws InterruptedException, ExecutionException {
+        ExecutorService executor =
+                Executors.newFixedThreadPool(THREAD_COUNT);
+        try {
+            Future<Long>[] futures = new Future[THREAD_COUNT];
+            int range = SIZE / THREAD_COUNT;
+
+            for (int t = 0; t < THREAD_COUNT; t++) {
+                final int start = t * range + 1;
+                final int end = (t == THREAD_COUNT - 1)
+                        ? SIZE : (t + 1) * range;
+
+                futures[t] = executor.submit(() -> {
+                    long partialSum = 0;
+
+                    for (int i = start; i <= end; i++) {
+                        partialSum += (long) i * i;
+                    }
+
+                    return partialSum;
+                });
+            }
+
+            long total = 0;
+
+            for (Future<Long> future : futures) {
+                total += future.get();
+            }
+
+            return total;
+
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            long startTime = System.nanoTime();
+            long singleResult = singleThreadedSum();
+            long singleTime = System.nanoTime() - startTime;
+
+            startTime = System.nanoTime();
+            long multiResult = multiThreadedSum();
+            long multiTime = System.nanoTime() - startTime;
+
+            System.out.println("Number Processor Results");
+            System.out.println("------------------------");
+
+            System.out.println("Single-threaded sum: " + singleResult);
+            System.out.printf("Single-threaded time: %.2f ms%n",
+                    singleTime / 1_000_000.0);
+
+            System.out.println();
+
+            System.out.println("Multithreaded sum: " + multiResult);
+            System.out.printf("Multithreaded time: %.2f ms%n",
+                    multiTime / 1_000_000.0);
+
+            System.out.println();
+
+            if (singleResult == multiResult) {
+                System.out.println("Both results are correct and equal.");
+            }
+
+            if (multiTime < singleTime) {
+                System.out.println("Multithreading was faster.");
+            } else {
+                System.out.println(
+                        "Single-threaded processing was faster in this run.");
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Processing was interrupted.");
+        } catch (ExecutionException e) {
+            System.out.println("Error during processing: " + e.getCause());
+        }
+    }
+}
