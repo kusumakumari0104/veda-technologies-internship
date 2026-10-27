@@ -1,0 +1,128 @@
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class ThreadSafeCounter {
+
+    // Unsafe counter
+    static class UnsafeCounter {
+        private int count = 0;
+
+        public void increment() {
+            count++;
+        }
+
+        public int getCount() {
+            return count;
+        }
+    }
+
+    // Thread-safe counter using synchronized
+    static class SynchronizedCounter {
+        private int count = 0;
+
+        public synchronized void increment() {
+            count++;
+        }
+
+        public synchronized int getCount() {
+            return count;
+        }
+    }
+
+    // Thread-safe counter using AtomicInteger
+    static class AtomicCounter {
+        private final AtomicInteger count = new AtomicInteger(0);
+
+        public void increment() {
+            count.incrementAndGet();
+        }
+
+        public int getCount() {
+            return count.get();
+        }
+    }
+
+    public static void main(String[] args)
+            throws InterruptedException {
+
+        final int THREADS = 10;
+        final int INCREMENTS = 100000;
+
+        UnsafeCounter unsafe = new UnsafeCounter();
+        SynchronizedCounter safe = new SynchronizedCounter();
+        AtomicCounter atomic = new AtomicCounter();
+
+        Thread[] threads = new Thread[THREADS];
+
+        long startTime = System.nanoTime();
+
+        // Test unsafe counter
+        for (int i = 0; i < THREADS; i++) {
+            threads[i] = new Thread(() -> {
+                for (int j = 0; j < INCREMENTS; j++) {
+                    unsafe.increment();
+                }
+            });
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        long unsafeTime = System.nanoTime() - startTime;
+
+        // Test synchronized counter
+        startTime = System.nanoTime();
+
+        for (int i = 0; i < THREADS; i++) {
+            threads[i] = new Thread(() -> {
+                for (int j = 0; j < INCREMENTS; j++) {
+                    safe.increment();
+                }
+            });
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        long safeTime = System.nanoTime() - startTime;
+
+        // Test AtomicInteger counter
+        startTime = System.nanoTime();
+
+        for (int i = 0; i < THREADS; i++) {
+            threads[i] = new Thread(() -> {
+                for (int j = 0; j < INCREMENTS; j++) {
+                    atomic.increment();
+                }
+            });
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        long atomicTime = System.nanoTime() - startTime;
+
+        int expected = THREADS * INCREMENTS;
+
+        System.out.println("Expected Count: " + expected);
+
+        System.out.println("\n--- Counter Results ---");
+        System.out.println("Unsafe Counter: " + unsafe.getCount());
+        System.out.println("Synchronized Counter: " + safe.getCount());
+        System.out.println("Atomic Counter: " + atomic.getCount());
+
+        System.out.println("\n--- Performance Comparison ---");
+        System.out.printf("Unsafe Counter: %.3f ms%n",
+                unsafeTime / 1_000_000.0);
+        System.out.printf("Synchronized Counter: %.3f ms%n",
+                safeTime / 1_000_000.0);
+        System.out.printf("Atomic Counter: %.3f ms%n",
+                atomicTime / 1_000_000.0);
+    }
+}
