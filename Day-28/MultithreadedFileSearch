@@ -1,0 +1,187 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+public class MultithreadedFileSearch {
+
+    static class SearchTask implements Callable<List<String>> {
+        private final Path file;
+        private final String keyword;
+
+        SearchTask(Path file, String keyword) {
+            this.file = file;
+            this.keyword = keyword;
+        }
+
+        @Override
+        public List<String> call() {
+            List<String> results = new ArrayList<>();
+
+            try (BufferedReader reader = Files.newBufferedReader(file)) {
+                String line;
+                int lineNumber = 0;
+
+                while ((line = reader.readLine()) != null) {
+                    lineNumber++;
+
+                    if (line.toLowerCase().contains(
+                            keyword.toLowerCase())) {
+                        results.add(
+                            file.getFileName() + " | Line "
+                            + lineNumber + " | " + line
+                        );
+                    }
+                }
+            } catch (IOException e) {
+                results.add("Error reading " + file + ": "
+                        + e.getMessage());
+            }
+
+            return results;
+        }
+    }
+
+    public static void main(String[] args) {
+        Path directory = Paths.get("searchfiles");
+
+        try {
+            java.util.Scanner scanner =
+                    new java.util.Scanner(System.in);
+
+            System.out.print("Enter keyword to search: ");
+            String keyword = scanner.nextLine().trim();
+
+            if (keyword.isEmpty()) {
+                System.out.println("Keyword cannot be empty.");
+                scanner.close();
+                return;
+            }
+
+            if (!Files.isDirectory(directory)) {
+                System.out.println(
+                    "Directory 'searchfiles' not found."
+                );
+                scanner.close();
+                return;
+            }
+
+            List<Path> files = new ArrayList<>();
+
+            try (var stream = Files.list(directory)) {
+                stream.filter(Files::isRegularFile)
+                      .filter(p -> p.toString()
+                              .toLowerCase().endsWith(".txt"))
+                      .forEach(files::add);
+            }
+
+            if (files.isEmpty()) {
+                System.out.println(
+                    "No text files found in searchfiles."
+                );
+                scanner.close();
+                return;
+            }
+
+            // Sequential search
+            long sequentialStart = System.nanoTime();
+            List<String> sequentialResults = new ArrayList<>();
+
+            for (Path file : files) {
+                sequentialResults.addAll(
+                    new SearchTask(file, keyword).call()
+                );
+            }
+
+            long sequentialTime =
+                    System.nanoTime() - sequentialStart;
+
+            // Multithreaded search using a fixed thread pool
+            int threadCount = Math.min(
+                    files.size(),
+                    Runtime.getRuntime().availableProcessors()
+            );
+            threadCount = Math.max(1, threadCount);
+
+            ExecutorService executor =
+                    Executors.newFixedThreadPool(threadCount);
+
+            long parallelStart = System.nanoTime();
+
+            try {
+                List<Future<List<String>>> futures =
+                        new ArrayList<>();
+
+                for (Path file : files) {
+                    futures.add(executor.submit(
+                            new SearchTask(file, keyword)
+                    ));
+                }
+
+                List<String> parallelResults =
+                        new ArrayList<>();
+
+                for (Future<List<String>> future : futures) {
+                    parallelResults.addAll(future.get());
+                }
+
+                long parallelTime =
+                        System.nanoTime() - parallelStart;
+
+                System.out.println("\nFiles searched: "
+                        + files.size());
+                System.out.println("Worker threads: "
+                        + threadCount);
+
+                System.out.println("\nMatching lines:");
+
+                if (parallelResults.isEmpty()) {
+                    System.out.println(
+                        "No matches found for: " + keyword
+                    );
+                } else {
+                    for (String result : parallelResults) {
+                        System.out.println(result);
+                    }
+                }
+
+                System.out.println("\nExecution Time Comparison");
+                System.out.printf(
+                    "Sequential: %.3f ms%n",
+                    sequentialTime / 1_000_000.0
+                );
+                System.out.printf(
+                    "Multithreaded: %.3f ms%n",
+                    parallelTime / 1_000_000.0
+                );
+
+            } finally {
+                executor.shutdown();
+                try {
+                    if (!executor.awaitTermination(
+                            1, TimeUnit.MINUTES)) {
+                        executor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    executor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            scanner.close();
+
+        } catch (IOException e) {
+            System.out.println("File error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Search error: " + e.getMessage());
+        }
+    }
+}
