@@ -1,0 +1,69 @@
+import java.util.ArrayList;
+import java.util.List;
+class GenericRepository<T> {
+    private final List<T> data = new ArrayList<>();
+    // Create: Add an object
+    public void add(T item) {
+        data.add(item);
+        System.out.println("Added: " + item);
+    }
+    // Read: Retrieve all objects
+    public List<T> getAll() {
+        return new ArrayList<>(data);
+    }
+    // Read: Retrieve an object by index
+    public T get(int index) {
+        if (index >= 0 && index < data.size()) {
+            return data.get(index);
+        }
+        return null;
+    }
+    // Update: Replace an object by index
+    public boolean update(int index, T item) {
+        if (index >= 0 && index < data.size()) {
+            data.set(index, item);
+            System.out.println("Updated successfully.");
+            return true;
+        }
+        System.out.println("Invalid index.");
+        return false;
+    }
+    // Delete: Remove an object by index
+    public boolean delete(int index) {
+        if (index >= 0 && index < data.size()) {
+            T removed = data.remove(index);
+            System.out.println("Deleted: " + removed);
+            return true;
+        }
+        System.out.println("Invalid index.");
+        return false;
+    }
+}
+public class GenericDataRepository {
+    public static void main(String[] args) {
+        // Repository for String objects
+        GenericRepository<String> names = new GenericRepository<>();
+        names.add("Kusuma");
+        names.add("Ravi");
+        names.add("Priya");
+
+        System.out.println("\nNames: " + names.getAll());
+        System.out.println("First name: " + names.get(0));
+        names.update(1, "Rahul");
+        System.out.println("After update: " + names.getAll());
+
+        names.delete(2);
+        System.out.println("After delete: " + names.getAll());
+        // Repository for Integer objects
+        GenericRepository<Integer> numbers = new GenericRepository<>();
+        numbers.add(10);
+        numbers.add(20);
+        numbers.add(30);
+        System.out.println("\nNumbers: " + numbers.getAll());
+        numbers.update(0, 100);
+        System.out.println("After update: " + numbers.getAll());
+
+        numbers.delete(1);
+        System.out.println("After delete: " + numbers.getAll());
+    }
+}
