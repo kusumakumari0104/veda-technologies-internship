@@ -1,0 +1,142 @@
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class EmployeeAnalyticsSystem {
+
+    static class Employee {
+        private int id;
+        private String name;
+        private String department;
+        private double salary;
+
+        Employee(int id, String name, String department, double salary) {
+            this.id = id;
+            this.name = name;
+            this.department = department;
+            this.salary = salary;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDepartment() {
+            return department;
+        }
+
+        public double getSalary() {
+            return salary;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(
+                "ID: %d, Name: %s, Department: %s, Salary: %.2f",
+                id, name, department, salary
+            );
+        }
+    }
+
+    public static void main(String[] args) {
+
+        List<Employee> employees = Arrays.asList(
+            new Employee(101, "Kusuma", "IT", 50000),
+            new Employee(102, "Rahul", "HR", 35000),
+            new Employee(103, "Priya", "IT", 65000),
+            new Employee(104, "Arun", "Finance", 45000),
+            new Employee(105, "Sneha", "HR", 40000),
+            new Employee(106, "Vijay", "Finance", 55000),
+            new Employee(107, "Anjali", "IT", 75000),
+            new Employee(108, "Kiran", "Marketing", 30000)
+        );
+
+        // 1. Department-wise statistics
+        System.out.println("===== DEPARTMENT-WISE STATISTICS =====");
+
+        Map<String, Double> departmentAverage =
+            employees.stream().collect(
+                Collectors.groupingBy(
+                    Employee::getDepartment,
+                    Collectors.averagingDouble(Employee::getSalary)
+                )
+            );
+
+        departmentAverage.forEach((dept, avg) ->
+            System.out.printf("%s : Average Salary = %.2f%n", dept, avg)
+        );
+
+        // Department-wise employee count
+        System.out.println("\n===== EMPLOYEE COUNT BY DEPARTMENT =====");
+
+        Map<String, Long> departmentCount =
+            employees.stream().collect(
+                Collectors.groupingBy(
+                    Employee::getDepartment,
+                    Collectors.counting()
+                )
+            );
+
+        departmentCount.forEach((dept, count) ->
+            System.out.println(dept + " : " + count + " employees")
+        );
+
+        // 2. Salary analysis
+        System.out.println("\n===== SALARY ANALYSIS =====");
+
+        double averageSalary = employees.stream()
+            .collect(Collectors.averagingDouble(Employee::getSalary));
+
+        System.out.printf("Average Salary: %.2f%n", averageSalary);
+
+        Employee highestPaid = employees.stream()
+            .max(Comparator.comparingDouble(Employee::getSalary))
+            .orElse(null);
+
+        Employee lowestPaid = employees.stream()
+            .min(Comparator.comparingDouble(Employee::getSalary))
+            .orElse(null);
+
+        System.out.println("Highest Paid Employee: " + highestPaid);
+        System.out.println("Lowest Paid Employee: " + lowestPaid);
+
+        // 3. Employee ranking
+        System.out.println("\n===== EMPLOYEE RANKING =====");
+
+        employees.stream()
+            .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
+            .forEach(System.out::println);
+
+        // 4. Total salary
+        double totalSalary = employees.stream()
+            .mapToDouble(Employee::getSalary)
+            .sum();
+
+        System.out.printf("%nTotal Salary Expense: %.2f%n", totalSalary);
+
+        // 5. Summary report
+        System.out.println("\n===== SUMMARY REPORT =====");
+
+        System.out.println("Total Employees: " + employees.size());
+
+        System.out.printf("Average Salary: %.2f%n", averageSalary);
+
+        System.out.println("Number of Departments: " +
+            departmentAverage.size());
+
+        System.out.printf("Highest Salary: %.2f%n",
+            highestPaid.getSalary());
+
+        System.out.printf("Lowest Salary: %.2f%n",
+            lowestPaid.getSalary());
+
+        System.out.printf("Total Salary Expense: %.2f%n",
+            totalSalary);
+
+        System.out.println("\nEmployee Analytics Completed Successfully!");
+    }
+}
