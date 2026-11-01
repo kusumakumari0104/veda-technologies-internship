@@ -1,0 +1,386 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+// Subject Class
+class Subject {
+    String subjectName;
+    double marks;
+
+    Subject(String subjectName, double marks) {
+        this.subjectName = subjectName;
+        this.marks = marks;
+    }
+}
+
+// Grade Class
+class Grade {
+
+    static String calculateGrade(double marks) {
+        if (marks >= 90)
+            return "A+";
+        else if (marks >= 80)
+            return "A";
+        else if (marks >= 70)
+            return "B";
+        else if (marks >= 60)
+            return "C";
+        else if (marks >= 50)
+            return "D";
+        else
+            return "F";
+    }
+}
+
+// Student Class
+class Student {
+    int id;
+    String name;
+    ArrayList<Subject> subjects;
+
+    Student(int id, String name) {
+        this.id = id;
+        this.name = name;
+        subjects = new ArrayList<>();
+    }
+
+    void addSubject(String subjectName, double marks) {
+        subjects.add(new Subject(subjectName, marks));
+    }
+
+    double calculateAverage() {
+        if (subjects.isEmpty())
+            return 0;
+
+        double total = 0;
+
+        for (Subject s : subjects) {
+            total += s.marks;
+        }
+
+        return total / subjects.size();
+    }
+
+    void displayStudent() {
+        System.out.println("\nStudent ID   : " + id);
+        System.out.println("Student Name : " + name);
+
+        if (subjects.isEmpty()) {
+            System.out.println("No subjects available.");
+        } else {
+            System.out.println("Subjects and Marks:");
+
+            for (Subject s : subjects) {
+                System.out.println(
+                    s.subjectName + " : " + s.marks +
+                    " | Grade: " + Grade.calculateGrade(s.marks)
+                );
+            }
+        }
+
+        double average = calculateAverage();
+
+        System.out.printf("Average Marks: %.2f%n", average);
+        System.out.println("Overall Grade: " +
+                Grade.calculateGrade(average));
+    }
+}
+
+// Main Class
+public class StudentGradeManagementSystem {
+
+    static ArrayList<Student> students = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+
+    // Find Student
+    static Student findStudent(int id) {
+        for (Student s : students) {
+            if (s.id == id) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    // Validate Marks
+    static double readMarks() {
+        double marks;
+
+        while (true) {
+            System.out.print("Enter marks (0-100): ");
+
+            if (sc.hasNextDouble()) {
+                marks = sc.nextDouble();
+                sc.nextLine();
+
+                if (marks >= 0 && marks <= 100) {
+                    return marks;
+                }
+            } else {
+                sc.nextLine();
+            }
+
+            System.out.println("Invalid marks! Enter between 0 and 100.");
+        }
+    }
+
+    // Add Student
+    static void addStudent() {
+        System.out.print("Enter Student ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        if (findStudent(id) != null) {
+            System.out.println("Student ID already exists!");
+            return;
+        }
+
+        System.out.print("Enter Student Name: ");
+        String name = sc.nextLine();
+
+        Student student = new Student(id, name);
+
+        System.out.print("Enter number of subjects: ");
+        int count = sc.nextInt();
+        sc.nextLine();
+
+        if (count < 0) {
+            System.out.println("Invalid subject count!");
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            System.out.print("Enter Subject Name: ");
+            String subjectName = sc.nextLine();
+
+            double marks = readMarks();
+
+            student.addSubject(subjectName, marks);
+        }
+
+        students.add(student);
+
+        System.out.println("Student added successfully!");
+    }
+
+    // Display All Students
+    static void displayStudents() {
+        if (students.isEmpty()) {
+            System.out.println("No student records found!");
+            return;
+        }
+
+        for (Student s : students) {
+            s.displayStudent();
+            System.out.println("-------------------------");
+        }
+    }
+
+    // Search Student
+    static void searchStudent() {
+        System.out.print("Enter Student ID to search: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        Student student = findStudent(id);
+
+        if (student != null) {
+            student.displayStudent();
+        } else {
+            System.out.println("Student not found!");
+        }
+    }
+
+    // Update Student
+    static void updateStudent() {
+        System.out.print("Enter Student ID to update: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        Student student = findStudent(id);
+
+        if (student == null) {
+            System.out.println("Student not found!");
+            return;
+        }
+
+        System.out.print("Enter New Student Name: ");
+        student.name = sc.nextLine();
+
+        System.out.println("1. Update Existing Subject Marks");
+        System.out.println("2. Add New Subject");
+        System.out.print("Enter choice: ");
+
+        int choice = sc.nextInt();
+        sc.nextLine();
+
+        if (choice == 1) {
+            if (student.subjects.isEmpty()) {
+                System.out.println("No subjects available!");
+                return;
+            }
+
+            System.out.print("Enter Subject Name: ");
+            String subjectName = sc.nextLine();
+
+            boolean found = false;
+
+            for (Subject s : student.subjects) {
+                if (s.subjectName.equalsIgnoreCase(subjectName)) {
+                    s.marks = readMarks();
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                System.out.println("Marks updated successfully!");
+            } else {
+                System.out.println("Subject not found!");
+            }
+
+        } else if (choice == 2) {
+            System.out.print("Enter Subject Name: ");
+            String subjectName = sc.nextLine();
+
+            double marks = readMarks();
+            student.addSubject(subjectName, marks);
+
+            System.out.println("Subject added successfully!");
+
+        } else {
+            System.out.println("Invalid choice!");
+        }
+    }
+
+    // Delete Student
+    static void deleteStudent() {
+        System.out.print("Enter Student ID to delete: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        Student student = findStudent(id);
+
+        if (student != null) {
+            students.remove(student);
+            System.out.println("Student deleted successfully!");
+        } else {
+            System.out.println("Student not found!");
+        }
+    }
+
+    // Performance Summary
+    static void performanceSummary() {
+        if (students.isEmpty()) {
+            System.out.println("No student records available!");
+            return;
+        }
+
+        double totalAverage = 0;
+        int highest = 0;
+        int lowest = 0;
+
+        Student topStudent = null;
+
+        for (Student s : students) {
+            double average = s.calculateAverage();
+
+            totalAverage += average;
+
+            if (topStudent == null ||
+                    average > topStudent.calculateAverage()) {
+                topStudent = s;
+            }
+
+            if (Grade.calculateGrade(average).equals("F")) {
+                lowest++;
+            } else {
+                highest++;
+            }
+        }
+
+        System.out.println("\n===== PERFORMANCE SUMMARY =====");
+
+        System.out.println("Total Students: " + students.size());
+
+        System.out.printf("Class Average: %.2f%n",
+                totalAverage / students.size());
+
+        System.out.println("Students Passed: " + highest);
+        System.out.println("Students Failed: " + lowest);
+
+        if (topStudent != null) {
+            System.out.println("Top Performer: " + topStudent.name);
+            System.out.printf("Top Average: %.2f%n",
+                    topStudent.calculateAverage());
+        }
+    }
+
+    // Main Method
+    public static void main(String[] args) {
+
+        int choice;
+
+        do {
+            System.out.println("\n================================");
+            System.out.println(" STUDENT GRADE MANAGEMENT SYSTEM");
+            System.out.println("================================");
+            System.out.println("1. Add Student");
+            System.out.println("2. Display All Students");
+            System.out.println("3. Search Student");
+            System.out.println("4. Update Student");
+            System.out.println("5. Delete Student");
+            System.out.println("6. Performance Summary");
+            System.out.println("7. Exit");
+
+            System.out.print("Enter your choice: ");
+
+            if (!sc.hasNextInt()) {
+                System.out.println("Please enter a valid number!");
+                sc.nextLine();
+                continue;
+            }
+
+            choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    addStudent();
+                    break;
+
+                case 2:
+                    displayStudents();
+                    break;
+
+                case 3:
+                    searchStudent();
+                    break;
+
+                case 4:
+                    updateStudent();
+                    break;
+
+                case 5:
+                    deleteStudent();
+                    break;
+
+                case 6:
+                    performanceSummary();
+                    break;
+
+                case 7:
+                    System.out.println("Thank you for using the system!");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+
+        } while (choice != 7);
+
+        sc.close();
+    }
+}
+
