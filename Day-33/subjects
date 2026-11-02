@@ -1,0 +1,342 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Subject {
+    String subjectName;
+    double marks;
+
+    Subject(String subjectName, double marks) {
+        this.subjectName = subjectName;
+        this.marks = marks;
+    }
+}
+
+class Grade {
+
+    static String calculateGrade(double percentage) {
+        if (percentage >= 90)
+            return "A+";
+        else if (percentage >= 80)
+            return "A";
+        else if (percentage >= 70)
+            return "B";
+        else if (percentage >= 60)
+            return "C";
+        else if (percentage >= 50)
+            return "D";
+        else
+            return "F";
+    }
+}
+
+class Student {
+    int id;
+    String name;
+    int age;
+    ArrayList<Subject> subjects = new ArrayList<>();
+
+    Student(int id, String name, int age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    void addSubject(String subjectName, double marks) {
+        subjects.add(new Subject(subjectName, marks));
+    }
+
+    double calculateTotal() {
+        double total = 0;
+        for (Subject s : subjects) {
+            total += s.marks;
+        }
+        return total;
+    }
+
+    double calculatePercentage() {
+        if (subjects.isEmpty())
+            return 0;
+
+        return calculateTotal() / subjects.size();
+    }
+
+    void displayStudent() {
+        System.out.println("\nStudent ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("Age: " + age);
+
+        System.out.println("\nSubject Details:");
+
+        for (Subject s : subjects) {
+            System.out.println(s.subjectName + " : " + s.marks);
+        }
+
+        double total = calculateTotal();
+        double percentage = calculatePercentage();
+
+        System.out.println("Total Marks: " + total);
+        System.out.printf("Percentage: %.2f%%\n", percentage);
+        System.out.println("Grade: " +
+                Grade.calculateGrade(percentage));
+    }
+}
+
+public class StudentManagementSystem{
+
+    static ArrayList<Student> students = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+
+    static Student findStudent(int id) {
+        for (Student s : students) {
+            if (s.id == id) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    static int readInt(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                return Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
+    static double readMarks(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                double marks = Double.parseDouble(sc.nextLine());
+
+                if (marks >= 0 && marks <= 100)
+                    return marks;
+
+                System.out.println("Marks must be between 0 and 100.");
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter valid marks.");
+            }
+        }
+    }
+
+    // Add Student
+    static void addStudent() {
+        int id = readInt("Enter Student ID: ");
+
+        if (findStudent(id) != null) {
+            System.out.println("Student ID already exists!");
+            return;
+        }
+
+        System.out.print("Enter Student Name: ");
+        String name = sc.nextLine();
+
+        if (name.trim().isEmpty()) {
+            System.out.println("Name cannot be empty.");
+            return;
+        }
+
+        int age = readInt("Enter Age: ");
+
+        if (age <= 0) {
+            System.out.println("Age must be positive.");
+            return;
+        }
+
+        Student student = new Student(id, name, age);
+
+        int count = readInt("Enter Number of Subjects: ");
+
+        if (count <= 0) {
+            System.out.println("Enter at least one subject.");
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            System.out.print("Enter Subject Name: ");
+            String subject = sc.nextLine();
+
+            if (subject.trim().isEmpty()) {
+                System.out.println("Subject name cannot be empty.");
+                i--;
+                continue;
+            }
+
+            double marks = readMarks("Enter Marks (0-100): ");
+            student.addSubject(subject, marks);
+        }
+
+        students.add(student);
+        System.out.println("Student added successfully!");
+    }
+
+    // View All Students
+    static void viewStudents() {
+        if (students.isEmpty()) {
+            System.out.println("No student records found.");
+            return;
+        }
+
+        for (Student s : students) {
+            s.displayStudent();
+            System.out.println("------------------------");
+        }
+    }
+
+    // Search Student
+    static void searchStudent() {
+        int id = readInt("Enter Student ID to Search: ");
+
+        Student s = findStudent(id);
+
+        if (s != null) {
+            s.displayStudent();
+        } else {
+            System.out.println("Student not found!");
+        }
+    }
+
+    // Update Student
+    static void updateStudent() {
+        int id = readInt("Enter Student ID to Update: ");
+
+        Student s = findStudent(id);
+
+        if (s == null) {
+            System.out.println("Student not found!");
+            return;
+        }
+
+        System.out.print("Enter New Name: ");
+        String name = sc.nextLine();
+
+        if (!name.trim().isEmpty()) {
+            s.name = name;
+        }
+
+        int age = readInt("Enter New Age: ");
+
+        if (age > 0) {
+            s.age = age;
+        } else {
+            System.out.println("Invalid age. Keeping old age.");
+        }
+
+        if (s.subjects.isEmpty()) {
+            System.out.println("No subjects available to update.");
+            return;
+        }
+
+        System.out.println("Subjects:");
+
+        for (int i = 0; i < s.subjects.size(); i++) {
+            System.out.println((i + 1) + ". " +
+                    s.subjects.get(i).subjectName);
+        }
+
+        int choice = readInt("Select Subject Number to Update Marks: ");
+
+        if (choice >= 1 && choice <= s.subjects.size()) {
+            double marks = readMarks("Enter New Marks: ");
+            s.subjects.get(choice - 1).marks = marks;
+            System.out.println("Marks updated successfully!");
+        } else {
+            System.out.println("Invalid subject number.");
+        }
+
+        System.out.println("Student updated successfully!");
+    }
+
+    // Delete Student
+    static void deleteStudent() {
+        int id = readInt("Enter Student ID to Delete: ");
+
+        Student s = findStudent(id);
+
+        if (s != null) {
+            students.remove(s);
+            System.out.println("Student deleted successfully!");
+        } else {
+            System.out.println("Student not found!");
+        }
+    }
+
+    // Performance Summary
+    static void performanceSummary() {
+        if (students.isEmpty()) {
+            System.out.println("No student records available.");
+            return;
+        }
+
+        System.out.println("\n===== PERFORMANCE SUMMARY =====");
+
+        for (Student s : students) {
+            double percentage = s.calculatePercentage();
+
+            System.out.println("\nStudent Name: " + s.name);
+            System.out.println("Total Marks: " + s.calculateTotal());
+            System.out.printf("Percentage: %.2f%%\n", percentage);
+            System.out.println("Grade: " +
+                    Grade.calculateGrade(percentage));
+        }
+    }
+
+    // Main Menu
+    public static void main(String[] args) {
+
+        int choice;
+
+        do {
+            System.out.println("\n===== STUDENT MANAGEMENT SYSTEM =====");
+            System.out.println("1. Add Student");
+            System.out.println("2. View All Students");
+            System.out.println("3. Search Student");
+            System.out.println("4. Update Student");
+            System.out.println("5. Delete Student");
+            System.out.println("6. Performance Summary");
+            System.out.println("7. Exit");
+
+            choice = readInt("Enter Your Choice: ");
+
+            switch (choice) {
+                case 1:
+                    addStudent();
+                    break;
+
+                case 2:
+                    viewStudents();
+                    break;
+
+                case 3:
+                    searchStudent();
+                    break;
+
+                case 4:
+                    updateStudent();
+                    break;
+
+                case 5:
+                    deleteStudent();
+                    break;
+
+                case 6:
+                    performanceSummary();
+                    break;
+
+                case 7:
+                    System.out.println("Thank you for using Student Management System!");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+
+        } while (choice != 7);
+
+        sc.close();
+    }
+}
