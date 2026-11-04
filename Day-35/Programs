@@ -1,0 +1,515 @@
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+// Parent class
+class Program {
+    private int id;
+    private String name;
+    private String description;
+
+    public Program(int id, String name, String description) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void display() {
+        System.out.println("ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("Description: " + description);
+    }
+}
+
+// Service class
+class Service extends Program {
+    private double price;
+
+    public Service(int id, String name, String description, double price) {
+        super(id, name, description);
+        this.price = price;
+    }
+
+    @Override
+    public void display() {
+        super.display();
+        System.out.println("Price: Rs." + price);
+    }
+}
+
+// Training program class
+class TrainingProgram extends Program {
+    private int duration;
+
+    public TrainingProgram(int id, String name, String description, int duration) {
+        super(id, name, description);
+        this.duration = duration;
+    }
+
+    @Override
+    public void display() {
+        super.display();
+        System.out.println("Duration: " + duration + " months");
+    }
+}
+
+// Internship program class
+class InternshipProgram extends Program {
+    private int duration;
+
+    public InternshipProgram(int id, String name, String description, int duration) {
+        super(id, name, description);
+        this.duration = duration;
+    }
+
+    @Override
+    public void display() {
+        super.display();
+        System.out.println("Internship Duration: " + duration + " months");
+    }
+}
+
+// Customer class
+class Customer {
+    private int id;
+    private String name;
+    private String email;
+
+    public Customer(int id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void display() {
+        System.out.println("Customer ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("Email: " + email);
+    }
+}
+
+// Inquiry class
+class Inquiry {
+    private int id;
+    private String customerName;
+    private String message;
+
+    public Inquiry(int id, String customerName, String message) {
+        this.id = id;
+        this.customerName = customerName;
+        this.message = message;
+    }
+
+    public void display() {
+        System.out.println("Inquiry ID: " + id);
+        System.out.println("Customer: " + customerName);
+        System.out.println("Message: " + message);
+    }
+}
+
+// Service request class
+class ServiceRequest {
+    private int id;
+    private String customerName;
+    private String serviceName;
+    private String status;
+
+    public ServiceRequest(int id, String customerName,
+                          String serviceName, String status) {
+        this.id = id;
+        this.customerName = customerName;
+        this.serviceName = serviceName;
+        this.status = status;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void display() {
+        System.out.println("Request ID: " + id);
+        System.out.println("Customer: " + customerName);
+        System.out.println("Service: " + serviceName);
+        System.out.println("Status: " + status);
+    }
+}
+
+// Main application
+public class VedaTechnologySystem {
+
+    static Scanner sc = new Scanner(System.in);
+
+    static List<Service> services = new ArrayList<>();
+    static List<TrainingProgram> trainings = new ArrayList<>();
+    static List<InternshipProgram> internships = new ArrayList<>();
+    static List<Customer> customers = new ArrayList<>();
+    static List<Inquiry> inquiries = new ArrayList<>();
+    static List<ServiceRequest> requests = new ArrayList<>();
+
+    static int inquiryId = 1;
+    static int requestId = 1;
+    static int customerId = 1;
+
+    // Sample synthetic data
+    static void loadData() {
+        services.add(new Service(1, "Web Development",
+                "Website design and development", 15000));
+
+        services.add(new Service(2, "Java Development",
+                "Java application development", 12000));
+
+        services.add(new Service(3, "Digital Marketing",
+                "Online marketing services", 8000));
+
+        trainings.add(new TrainingProgram(1,
+                "Java Training", "Core and Advanced Java", 3));
+
+        trainings.add(new TrainingProgram(2,
+                "Python Training", "Python programming", 2));
+
+        internships.add(new InternshipProgram(1,
+                "Web Development Internship", "Practical web development", 2));
+
+        internships.add(new InternshipProgram(2,
+                "Java Internship", "Real-time Java projects", 3));
+
+        customers.add(new Customer(1,
+                "Rahul", "rahul@gmail.com"));
+
+        customers.add(new Customer(2,
+                "Priya", "priya@gmail.com"));
+
+        customerId = 3;
+    }
+
+    // Display services
+    static void viewServices() {
+        System.out.println("\n--- AVAILABLE SERVICES ---");
+        for (Service s : services) {
+            s.display();
+            System.out.println("-------------------");
+        }
+    }
+
+    // Display training programs
+    static void viewTrainings() {
+        System.out.println("\n--- TRAINING PROGRAMS ---");
+        for (TrainingProgram t : trainings) {
+            t.display();
+            System.out.println("-------------------");
+        }
+    }
+
+    // Display internships
+    static void viewInternships() {
+        System.out.println("\n--- INTERNSHIP PROGRAMS ---");
+        for (InternshipProgram i : internships) {
+            i.display();
+            System.out.println("-------------------");
+        }
+    }
+
+    // Add customer
+    static void addCustomer() {
+        try {
+            System.out.print("Enter customer name: ");
+            String name = sc.nextLine().trim();
+
+            System.out.print("Enter email: ");
+            String email = sc.nextLine().trim();
+
+            if (name.isEmpty() || email.isEmpty() ||
+                    !email.matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$")) {
+                throw new IllegalArgumentException("Enter valid customer details.");
+            }
+
+            customers.add(new Customer(customerId++, name, email));
+            System.out.println("Customer registered successfully!");
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Submit inquiry
+    static void addInquiry() {
+        System.out.print("Enter customer name: ");
+        String name = sc.nextLine().trim();
+
+        System.out.print("Enter your inquiry: ");
+        String message = sc.nextLine().trim();
+
+        if (name.isEmpty() || message.isEmpty()) {
+            System.out.println("Name and inquiry cannot be empty.");
+            return;
+        }
+
+        inquiries.add(new Inquiry(inquiryId++, name, message));
+        System.out.println("Inquiry submitted successfully!");
+    }
+
+    // Create service request
+    static void addRequest() {
+        viewServices();
+
+        System.out.print("Enter customer name: ");
+        String customer = sc.nextLine().trim();
+
+        System.out.print("Enter service name: ");
+        String service = sc.nextLine().trim();
+
+        boolean found = services.stream()
+                .anyMatch(s -> s.getName().equalsIgnoreCase(service));
+
+        if (customer.isEmpty() || !found) {
+            System.out.println("Invalid customer name or service.");
+            return;
+        }
+
+        requests.add(new ServiceRequest(
+                requestId++, customer, service, "Pending"));
+
+        System.out.println("Service request created successfully!");
+    }
+
+    // View all inquiries
+    static void viewInquiries() {
+        System.out.println("\n--- CUSTOMER INQUIRIES ---");
+
+        if (inquiries.isEmpty()) {
+            System.out.println("No inquiries available.");
+            return;
+        }
+
+        for (Inquiry i : inquiries) {
+            i.display();
+            System.out.println("-------------------");
+        }
+    }
+
+    // View service requests
+    static void viewRequests() {
+        System.out.println("\n--- SERVICE REQUESTS ---");
+
+        if (requests.isEmpty()) {
+            System.out.println("No service requests available.");
+            return;
+        }
+
+        for (ServiceRequest r : requests) {
+            r.display();
+            System.out.println("-------------------");
+        }
+    }
+
+    // Update service request
+    static void updateRequest() {
+        viewRequests();
+
+        System.out.print("Enter request ID to update: ");
+
+        try {
+            int id = Integer.parseInt(sc.nextLine());
+
+            ServiceRequest selected = null;
+
+            for (ServiceRequest r : requests) {
+                if (rIdMatch(r, id)) {
+                    selected = r;
+                    break;
+                }
+            }
+
+            if (selected == null) {
+                System.out.println("Request not found.");
+                return;
+            }
+
+            System.out.print("Enter new status (Pending/In Progress/Completed): ");
+            String status = sc.nextLine().trim();
+
+            if (!status.equalsIgnoreCase("Pending") &&
+                !status.equalsIgnoreCase("In Progress") &&
+                !status.equalsIgnoreCase("Completed")) {
+                System.out.println("Invalid status.");
+                return;
+            }
+
+            selected.setStatus(status);
+            System.out.println("Request status updated successfully!");
+
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid request ID.");
+        }
+    }
+
+    static boolean rIdMatch(ServiceRequest request, int id) {
+        return request.getServiceName() != null &&
+                requestIdOf(request) == id;
+    }
+
+    // Search service
+    static void searchService() {
+        System.out.print("Enter service name to search: ");
+        String keyword = sc.nextLine().trim().toLowerCase();
+
+        boolean found = false;
+
+        for (Service s : services) {
+            if (s.getName().toLowerCase().contains(keyword)) {
+                s.display();
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No matching service found.");
+        }
+    }
+
+    // Display report
+    static void generateReport() {
+        int pending = 0;
+        int completed = 0;
+        int inProgress = 0;
+
+        for (ServiceRequest r : requests) {
+            if (r.getStatus().equalsIgnoreCase("Pending")) {
+                pending++;
+            } else if (r.getStatus().equalsIgnoreCase("Completed")) {
+                completed++;
+            } else if (r.getStatus().equalsIgnoreCase("In Progress")) {
+                inProgress++;
+            }
+        }
+
+        System.out.println("\n========== SYSTEM REPORT ==========");
+        System.out.println("Total Services: " + services.size());
+        System.out.println("Training Programs: " + trainings.size());
+        System.out.println("Internship Programs: " + internships.size());
+        System.out.println("Registered Customers: " + customers.size());
+        System.out.println("Total Inquiries: " + inquiries.size());
+        System.out.println("Total Service Requests: " + requests.size());
+        System.out.println("Pending Requests: " + pending);
+        System.out.println("In Progress Requests: " + inProgress);
+        System.out.println("Completed Requests: " + completed);
+        System.out.println("===================================");
+    }
+
+    static int requestIdOf(ServiceRequest r) {
+        // Request IDs are assigned sequentially.
+        return requests.indexOf(r) + 1;
+    }
+
+    // Main menu
+    public static void main(String[] args) {
+
+        loadData();
+
+        int choice;
+
+        do {
+            System.out.println("\n==================================");
+            System.out.println(" VEDA TECHNOLOGY BUSINESS SYSTEM");
+            System.out.println("==================================");
+            System.out.println("1. View Services");
+            System.out.println("2. View Training Programs");
+            System.out.println("3. View Internship Programs");
+            System.out.println("4. Register Customer");
+            System.out.println("5. Submit Customer Inquiry");
+            System.out.println("6. Create Service Request");
+            System.out.println("7. View Inquiries");
+            System.out.println("8. View Service Requests");
+            System.out.println("9. Update Service Request");
+            System.out.println("10. Search Services");
+            System.out.println("11. Generate Report");
+            System.out.println("0. Exit");
+            System.out.print("Enter your choice: ");
+
+            try {
+                choice = Integer.parseInt(sc.nextLine());
+
+                switch (choice) {
+                    case 1:
+                        viewServices();
+                        break;
+                    case 2:
+                        viewTrainings();
+                        break;
+                    case 3:
+                        viewInternships();
+                        break;
+                    case 4:
+                        addCustomer();
+                        break;
+                    case 5:
+                        addInquiry();
+                        break;
+                    case 6:
+                        addRequest();
+                        break;
+                    case 7:
+                        viewInquiries();
+                        break;
+                    case 8:
+                        viewRequests();
+                        break;
+                    case 9:
+                        updateRequest();
+                        break;
+                    case 10:
+                        searchService();
+                        break;
+                    case 11:
+                        generateReport();
+                        break;
+                    case 0:
+                        System.out.println("Thank you for using Veda Technology System!");
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+                }
+
+            } catch (NumberFormatException e) {
+                choice = -1;
+                System.out.println("Please enter a valid number.");
+            }
+
+        } while (choice != 0);
+
+        sc.close();
+    }
+}
