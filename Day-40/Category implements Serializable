@@ -1,0 +1,521 @@
+import java.io.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.*;
+class Category implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String name;
+
+    public Category(String name) {
+        this.name = name;
+    }
+    public String getName() {
+        return name;
+    }
+}
+
+class Expense implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private int id;
+    private String description;
+    private Category category;
+    private BigDecimal amount;
+    private LocalDate date;
+
+    public Expense(int id, String description,
+                   Category category, BigDecimal amount,
+                   LocalDate date) {
+        this.id = id;
+        this.description = description;
+        this.category = category;
+        this.amount = amount;
+        this.date = date;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void update(String description, Category category,
+                       BigDecimal amount, LocalDate date) {
+        this.description = description;
+        this.category = category;
+        this.amount = amount;
+        this.date = date;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id +
+                " | Description: " + description +
+                " | Category: " + category.getName() +
+                " | Amount: Rs." + amount +
+                " | Date: " + date;
+    }
+}
+
+class Budget implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String category;
+    private YearMonth month;
+    private BigDecimal limit;
+
+    public Budget(String category, YearMonth month,
+                  BigDecimal limit) {
+        this.category = category;
+        this.month = month;
+        this.limit = limit;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public YearMonth getMonth() {
+        return month;
+    }
+
+    public BigDecimal getLimit() {
+        return limit;
+    }
+}
+
+public class ExpenseManager {
+
+    private static final String FILE_NAME = "expenses.dat";
+
+    private List<Expense> expenses = new ArrayList<>();
+    private List<Budget> budgets = new ArrayList<>();
+
+    private Scanner sc = new Scanner(System.in);
+    private int nextId = 1;
+
+    public ExpenseManager() {
+        loadData();
+    }
+
+    // Main menu
+    public void menu() {
+        while (true) {
+            System.out.println("\n===== EXPENSE MANAGEMENT SYSTEM =====");
+            System.out.println("1. Add Expense");
+            System.out.println("2. View All Expenses");
+            System.out.println("3. Edit Expense");
+            System.out.println("4. Delete Expense");
+            System.out.println("5. Search Expense");
+            System.out.println("6. Set Monthly Budget");
+            System.out.println("7. View Financial Summary");
+            System.out.println("8. View Category-wise Expenses");
+            System.out.println("9. Save and Exit");
+
+            int choice = readInt("Enter your choice: ");
+
+            try {
+                switch (choice) {
+                    case 1:
+                        addExpense();
+                        break;
+
+                    case 2:
+                        viewExpenses();
+                        break;
+
+                    case 3:
+                        editExpense();
+                        break;
+
+                    case 4:
+                        deleteExpense();
+                        break;
+
+                    case 5:
+                        searchExpense();
+                        break;
+
+                    case 6:
+                        setBudget();
+                        break;
+
+                    case 7:
+                        financialSummary();
+                        break;
+
+                    case 8:
+                        categorySummary();
+                        break;
+
+                    case 9:
+                        saveData();
+                        System.out.println("Thank you for using Expense Manager!");
+                        return;
+
+                    default:
+                        System.out.println("Invalid choice! Try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    // Add expense
+    private void addExpense() {
+        System.out.println("\n--- Add Expense ---");
+
+        String description = readText("Enter description: ");
+        String categoryName = readText("Enter category: ");
+
+        BigDecimal amount = readAmount("Enter amount: ");
+        LocalDate date = readDate("Enter date (YYYY-MM-DD): ");
+
+        Expense expense = new Expense(
+                nextId++,
+                description,
+                new Category(categoryName),
+                amount,
+                date
+        );
+
+        expenses.add(expense);
+        saveData();
+
+        System.out.println("Expense added successfully!");
+    }
+
+    // View all expenses
+    private void viewExpenses() {
+        System.out.println("\n--- All Expenses ---");
+
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses found.");
+            return;
+        }
+
+        for (Expense expense : expenses) {
+            System.out.println(expense);
+        }
+    }
+
+    // Edit expense
+    private void editExpense() {
+        int id = readInt("Enter expense ID to edit: ");
+
+        Expense expense = findExpense(id);
+
+        if (expense == null) {
+            System.out.println("Expense not found!");
+            return;
+        }
+
+        String description = readText("Enter new description: ");
+        String category = readText("Enter new category: ");
+        BigDecimal amount = readAmount("Enter new amount: ");
+        LocalDate date = readDate("Enter new date (YYYY-MM-DD): ");
+
+        expense.update(
+                description,
+                new Category(category),
+                amount,
+                date
+        );
+
+        saveData();
+        System.out.println("Expense updated successfully!");
+    }
+
+    // Delete expense
+    private void deleteExpense() {
+        int id = readInt("Enter expense ID to delete: ");
+
+        Expense expense = findExpense(id);
+
+        if (expense == null) {
+            System.out.println("Expense not found!");
+            return;
+        }
+
+        expenses.remove(expense);
+        saveData();
+
+        System.out.println("Expense deleted successfully!");
+    }
+
+    // Search expense
+    private void searchExpense() {
+        String keyword = readText("Enter description or category: ")
+                .toLowerCase();
+
+        boolean found = false;
+
+        for (Expense expense : expenses) {
+            if (expense.getDescription().toLowerCase()
+                    .contains(keyword)
+                    || expense.getCategory().getName()
+                    .toLowerCase().contains(keyword)) {
+
+                System.out.println(expense);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No matching expenses found.");
+        }
+    }
+
+    // Set monthly budget
+    private void setBudget() {
+        System.out.println("\n--- Set Monthly Budget ---");
+
+        String category = readText("Enter category: ");
+
+        YearMonth month = readMonth("Enter month (YYYY-MM): ");
+
+        BigDecimal limit = readAmount("Enter budget amount: ");
+
+        Budget budget = null;
+
+        for (Budget b : budgets) {
+            if (b.getCategory().equalsIgnoreCase(category)
+                    && b.getMonth().equals(month)) {
+                budget = b;
+                break;
+            }
+        }
+
+        if (budget != null) {
+            budgets.remove(budget);
+        }
+
+        budgets.add(new Budget(category, month, limit));
+
+        saveData();
+
+        System.out.println("Monthly budget saved successfully!");
+    }
+
+    // Financial summary
+    private void financialSummary() {
+        YearMonth month = readMonth("Enter month (YYYY-MM): ");
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (Expense expense : expenses) {
+            if (YearMonth.from(expense.getDate()).equals(month)) {
+                total = total.add(expense.getAmount());
+            }
+        }
+
+        System.out.println("\n--- Financial Summary ---");
+        System.out.println("Month: " + month);
+        System.out.println("Total Expenses: Rs." + total);
+
+        for (Budget budget : budgets) {
+            if (budget.getMonth().equals(month)) {
+
+                BigDecimal spent = BigDecimal.ZERO;
+
+                for (Expense expense : expenses) {
+                    if (YearMonth.from(expense.getDate()).equals(month)
+                            && expense.getCategory().getName()
+                            .equalsIgnoreCase(budget.getCategory())) {
+
+                        spent = spent.add(expense.getAmount());
+                    }
+                }
+
+                BigDecimal remaining = budget.getLimit().subtract(spent);
+
+                System.out.println("\nCategory: " + budget.getCategory());
+                System.out.println("Budget: Rs." + budget.getLimit());
+                System.out.println("Spent: Rs." + spent);
+                System.out.println("Remaining: Rs." + remaining);
+
+                if (remaining.compareTo(BigDecimal.ZERO) < 0) {
+                    System.out.println("Warning: Budget exceeded!");
+                } else {
+                    System.out.println("Budget is within limit.");
+                }
+            }
+        }
+    }
+
+    // Category-wise expense report
+    private void categorySummary() {
+        YearMonth month = readMonth("Enter month (YYYY-MM): ");
+
+        Map<String, BigDecimal> categoryTotals = new TreeMap<>();
+
+        for (Expense expense : expenses) {
+            if (YearMonth.from(expense.getDate()).equals(month)) {
+
+                String category = expense.getCategory().getName();
+
+                categoryTotals.put(
+                        category,
+                        categoryTotals.getOrDefault(
+                                category, BigDecimal.ZERO
+                        ).add(expense.getAmount())
+                );
+            }
+        }
+
+        System.out.println("\n--- Category-wise Expense Report ---");
+
+        if (categoryTotals.isEmpty()) {
+            System.out.println("No expenses found for this month.");
+            return;
+        }
+
+        for (Map.Entry<String, BigDecimal> entry
+                : categoryTotals.entrySet()) {
+
+            System.out.println(
+                    entry.getKey() + " : Rs." + entry.getValue()
+            );
+        }
+    }
+
+    // Find expense by ID
+    private Expense findExpense(int id) {
+        for (Expense expense : expenses) {
+            if (expense.getId() == id) {
+                return expense;
+            }
+        }
+        return null;
+    }
+
+    // Save data to file
+    private void saveData() {
+        try (ObjectOutputStream out = new ObjectOutputStream(
+                new FileOutputStream(FILE_NAME))) {
+
+            out.writeObject(expenses);
+            out.writeObject(budgets);
+            out.writeInt(nextId);
+
+        } catch (IOException e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
+    }
+
+    // Load data from file
+    @SuppressWarnings("unchecked")
+    private void loadData() {
+        File file = new File(FILE_NAME);
+
+        if (!file.exists()) {
+            return;
+        }
+
+        try (ObjectInputStream in = new ObjectInputStream(
+                new FileInputStream(FILE_NAME))) {
+
+            expenses = (List<Expense>) in.readObject();
+            budgets = (List<Budget>) in.readObject();
+            nextId = in.readInt();
+
+            System.out.println("Previous data loaded successfully!");
+
+        } catch (IOException | ClassNotFoundException e) {
+            expenses = new ArrayList<>();
+            budgets = new ArrayList<>();
+            nextId = 1;
+
+            System.out.println("Could not load saved data: " + e.getMessage());
+        }
+    }
+
+    // Input validation methods
+    private String readText(String message) {
+        while (true) {
+            System.out.print(message);
+            String value = sc.nextLine().trim();
+
+            if (!value.isEmpty()) {
+                return value;
+            }
+
+            System.out.println("Input cannot be empty.");
+        }
+    }
+
+    private int readInt(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                return Integer.parseInt(sc.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
+    private BigDecimal readAmount(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                BigDecimal amount = new BigDecimal(sc.nextLine().trim());
+
+                if (amount.compareTo(BigDecimal.ZERO) > 0
+                        && amount.scale() <= 2) {
+                    return amount;
+                }
+
+                System.out.println(
+                        "Amount must be positive and have at most 2 decimal places."
+                );
+
+            } catch (NumberFormatException e) {
+                System.out.println("Enter a valid amount.");
+            }
+        }
+    }
+
+    private LocalDate readDate(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                return LocalDate.parse(sc.nextLine().trim());
+            } catch (Exception e) {
+                System.out.println("Enter date in YYYY-MM-DD format.");
+            }
+        }
+    }
+
+    private YearMonth readMonth(String message) {
+        while (true) {
+            try {
+                System.out.print(message);
+                return YearMonth.parse(sc.nextLine().trim());
+            } catch (Exception e) {
+                System.out.println("Enter month in YYYY-MM format.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        ExpenseManager manager = new ExpenseManager();
+        manager.menu();
+    }
+}
