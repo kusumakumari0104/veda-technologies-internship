@@ -1,0 +1,474 @@
+
+import java.io.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+// Book Class
+class Book implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    int id;
+    String title;
+    String author;
+    String category;
+    String isbn;
+    boolean available;
+
+    Book(int id, String title, String author,
+         String category, String isbn) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.isbn = isbn;
+        this.available = true;
+    }
+
+    public String toString() {
+        return "ID: " + id +
+                " | Title: " + title +
+                " | Author: " + author +
+                " | Category: " + category +
+                " | ISBN: " + isbn +
+                " | Status: " + (available ? "Available" : "Issued");
+    }
+}
+
+// Member Class
+class Member implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    int id;
+    String name;
+    String email;
+
+    Member(int id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+    }
+
+    public String toString() {
+        return "Member ID: " + id +
+                " | Name: " + name +
+                " | Email: " + email;
+    }
+}
+
+// Loan Class
+class Loan implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    int bookId;
+    int memberId;
+    LocalDate issueDate;
+    LocalDate dueDate;
+    LocalDate returnDate;
+
+    Loan(int bookId, int memberId) {
+        this.bookId = bookId;
+        this.memberId = memberId;
+        this.issueDate = LocalDate.now();
+        this.dueDate = issueDate.plusDays(14);
+        this.returnDate = null;
+    }
+
+    boolean isActive() {
+        return returnDate == null;
+    }
+
+    boolean isOverdue() {
+        return isActive() && LocalDate.now().isAfter(dueDate);
+    }
+}
+
+// Custom Exception
+class LibraryException extends Exception {
+    LibraryException(String message) {
+        super(message);
+    }
+}
+
+// Library Class
+class Library implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    ArrayList<Book> books = new ArrayList<>();
+    ArrayList<Member> members = new ArrayList<>();
+    ArrayList<Loan> loans = new ArrayList<>();
+
+    private static final String FILE_NAME = "library.dat";
+
+    // Add Book
+    void addBook(Book book) throws LibraryException {
+        if (findBook(book.id) != null) {
+            throw new LibraryException("Book ID already exists!");
+        }
+
+        books.add(book);
+        saveData();
+        System.out.println("Book added successfully!");
+    }
+
+    // Add Member
+    void addMember(Member member) throws LibraryException {
+        if (findMember(member.id) != null) {
+            throw new LibraryException("Member ID already exists!");
+        }
+
+        members.add(member);
+        saveData();
+        System.out.println("Member added successfully!");
+    }
+
+    // Find Book
+    Book findBook(int id) {
+        for (Book book : books) {
+            if (book.id == id) {
+                return book;
+            }
+        }
+        return null;
+    }
+
+    // Find Member
+    Member findMember(int id) {
+        for (Member member : members) {
+            if (member.id == id) {
+                return member;
+            }
+        }
+        return null;
+    }
+
+    // Issue Book
+    void issueBook(int bookId, int memberId)
+            throws LibraryException {
+
+        Book book = findBook(bookId);
+        Member member = findMember(memberId);
+
+        if (book == null) {
+            throw new LibraryException("Invalid Book ID!");
+        }
+
+        if (member == null) {
+            throw new LibraryException("Invalid Member ID!");
+        }
+
+        if (!book.available) {
+            throw new LibraryException("Book is already issued!");
+        }
+
+        book.available = false;
+
+        loans.add(new Loan(bookId, memberId));
+
+        saveData();
+
+        System.out.println("Book issued successfully!");
+        System.out.println("Due Date: " +
+                LocalDate.now().plusDays(14));
+    }
+
+    // Return Book
+    void returnBook(int bookId) throws LibraryException {
+
+        Book book = findBook(bookId);
+
+        if (book == null) {
+            throw new LibraryException("Invalid Book ID!");
+        }
+
+        if (book.available) {
+            throw new LibraryException("Book is not issued!");
+        }
+
+        for (Loan loan : loans) {
+            if (loan.bookId == bookId && loan.isActive()) {
+
+                loan.returnDate = LocalDate.now();
+                book.available = true;
+
+                long overdueDays = Math.max(
+                        0,
+                        ChronoUnit.DAYS.between(
+                                loan.dueDate, loan.returnDate
+                        )
+                );
+
+                System.out.println("Book returned successfully!");
+                System.out.println("Return Date: " + loan.returnDate);
+                System.out.println("Overdue Days: " + overdueDays);
+
+                saveData();
+                return;
+            }
+        }
+
+        throw new LibraryException("Active loan not found!");
+    }
+
+    // Display Books
+    void displayBooks() {
+        if (books.isEmpty()) {
+            System.out.println("No books available.");
+            return;
+        }
+
+        for (Book book : books) {
+            System.out.println(book);
+        }
+    }
+
+    // Display Members
+    void displayMembers() {
+        if (members.isEmpty()) {
+            System.out.println("No members available.");
+            return;
+        }
+
+        for (Member member : members) {
+            System.out.println(member);
+        }
+    }
+
+    // Search Books
+    void searchBook(String keyword) {
+        boolean found = false;
+
+        for (Book book : books) {
+            if (book.title.equalsIgnoreCase(keyword) ||
+                book.author.equalsIgnoreCase(keyword) ||
+                book.category.equalsIgnoreCase(keyword) ||
+                book.isbn.equalsIgnoreCase(keyword)) {
+
+                System.out.println(book);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No matching books found.");
+        }
+    }
+
+    // Sort Books
+    void sortBooks() {
+        books.sort(
+            Comparator.comparing(
+                book -> book.title.toLowerCase()
+            )
+        );
+
+        System.out.println("Books sorted by title:");
+        displayBooks();
+    }
+
+    // Overdue Tracking
+    void overdueBooks() {
+        boolean found = false;
+
+        for (Loan loan : loans) {
+            if (loan.isOverdue()) {
+
+                Book book = findBook(loan.bookId);
+                Member member = findMember(loan.memberId);
+
+                System.out.println("Book: " + book.title);
+                System.out.println("Member: " + member.name);
+                System.out.println("Due Date: " + loan.dueDate);
+
+                long days = ChronoUnit.DAYS.between(
+                        loan.dueDate, LocalDate.now()
+                );
+
+                System.out.println("Overdue Days: " + days);
+                System.out.println("-----------------------");
+
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No overdue books found.");
+        }
+    }
+
+    // Save Data to File
+    void saveData() {
+        try (ObjectOutputStream out =
+                     new ObjectOutputStream(
+                             new FileOutputStream(FILE_NAME))) {
+
+            out.writeObject(this);
+
+        } catch (IOException e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
+    }
+
+    // Load Data from File
+    static Library loadData() {
+        File file = new File(FILE_NAME);
+
+        if (!file.exists()) {
+            return new Library();
+        }
+
+        try (ObjectInputStream in =
+                     new ObjectInputStream(
+                             new FileInputStream(FILE_NAME))) {
+
+            return (Library) in.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Could not load saved data: " +
+                    e.getMessage());
+            return new Library();
+        }
+    }
+}
+
+// Main Class
+public class LibraryManagementSystem {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+        Library library = Library.loadData();
+
+        int choice;
+
+        do {
+            System.out.println("\n===== LIBRARY MANAGEMENT SYSTEM =====");
+            System.out.println("1. Add Book");
+            System.out.println("2. Add Member");
+            System.out.println("3. Display Books");
+            System.out.println("4. Display Members");
+            System.out.println("5. Issue Book");
+            System.out.println("6. Return Book");
+            System.out.println("7. Search Book");
+            System.out.println("8. Sort Books");
+            System.out.println("9. Overdue Tracking");
+            System.out.println("10. Exit");
+            System.out.print("Enter your choice: ");
+
+            try {
+                choice = sc.nextInt();
+                sc.nextLine();
+
+                switch (choice) {
+
+                    case 1:
+                        System.out.print("Enter Book ID: ");
+                        int bookId = sc.nextInt();
+                        sc.nextLine();
+
+                        System.out.print("Enter Title: ");
+                        String title = sc.nextLine();
+
+                        System.out.print("Enter Author: ");
+                        String author = sc.nextLine();
+
+                        System.out.print("Enter Category: ");
+                        String category = sc.nextLine();
+
+                        System.out.print("Enter ISBN: ");
+                        String isbn = sc.nextLine();
+
+                        library.addBook(
+                            new Book(bookId, title, author,
+                                    category, isbn)
+                        );
+                        break;
+
+                    case 2:
+                        System.out.print("Enter Member ID: ");
+                        int memberId = sc.nextInt();
+                        sc.nextLine();
+
+                        System.out.print("Enter Member Name: ");
+                        String name = sc.nextLine();
+
+                        System.out.print("Enter Email: ");
+                        String email = sc.nextLine();
+
+                        library.addMember(
+                            new Member(memberId, name, email)
+                        );
+                        break;
+
+                    case 3:
+                        library.displayBooks();
+                        break;
+
+                    case 4:
+                        library.displayMembers();
+                        break;
+
+                    case 5:
+                        System.out.print("Enter Book ID: ");
+                        int issueBookId = sc.nextInt();
+
+                        System.out.print("Enter Member ID: ");
+                        int issueMemberId = sc.nextInt();
+
+                        library.issueBook(
+                            issueBookId, issueMemberId
+                        );
+                        break;
+
+                    case 6:
+                        System.out.print("Enter Book ID: ");
+                        int returnBookId = sc.nextInt();
+
+                        library.returnBook(returnBookId);
+                        break;
+
+                    case 7:
+                        System.out.print(
+                            "Enter Title, Author, Category or ISBN: "
+                        );
+
+                        String keyword = sc.nextLine();
+                        library.searchBook(keyword);
+                        break;
+
+                    case 8:
+                        library.sortBooks();
+                        break;
+
+                    case 9:
+                        library.overdueBooks();
+                        break;
+
+                    case 10:
+                        library.saveData();
+                        System.out.println(
+                            "Thank you for using Library Management System!"
+                        );
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+
+            } catch (InputMismatchException e) {
+                System.out.println(
+                    "Invalid input! Please enter the correct data type."
+                );
+                sc.nextLine();
+                choice = 0;
+
+            } catch (LibraryException e) {
+                System.out.println("Error: " + e.getMessage());
+                choice = 0;
+            }
+
+        } while (choice != 10);
+
+        sc.close();
+    }
+}
